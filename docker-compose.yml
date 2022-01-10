@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  db:
+    environment:
+      - POSTGRES_USERNAME=${STOWDO_DB_USER}
+      - POSTGRES_PASSWORD=${STOWDO_DB_PASSWORD}
+      - POSTGRES_DATABASE=${STOWDO_DB_NAME}
+    expose:
+      - "${STOWDO_DB_PORT}"
+    hostname: "${STOWDO_DB_HOST}"
+    image: postgres:14-alpine
+    ports:
+      - "${STOWDO_DB_PORT}"
+    restart: always
+    volumes:
+      - ./scripts/docker:/docker-entrypoint-initdb.d
+  stowdo:
+    build: '.'
+    command: >
+      bash -c 'sleep 5;
+      python /app/manage.py migrate;
+      python /app/manage.py runserver 0.0.0.0:8000;'
+    depends_on:
+      - db
+    environment:
+      - STOWDO_SECRET_KEY
+      - STOWDO_ENVIRONMENT
+      - STOWDO_DB_HOST
+      - STOWDO_DB_PORT
+      - STOWDO_DB_USER
+      - STOWDO_DB_PASSWORD
+    image: redbeandock/stowdo:${STOWDO_VERSION}
+    ports:
+      - "8000:8000"
