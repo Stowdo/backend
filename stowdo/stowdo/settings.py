@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-79p8ju&-f5@qqc*djw@q_7kj^nc!8x!r-+a74+nfb51j5=ce)%'
+SECRET_KEY = os.environ.get('STOWDO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -134,3 +134,5 @@ REST_FRAMEWORK = {
 }
 
 SITE_ID = 1
+
+MEDIA_ROOT = BASE_DIR / 'media'
