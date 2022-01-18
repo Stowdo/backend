@@ -11,10 +11,10 @@ class Resource(models.Model):
 
 class Folder(Resource):
     creation_date = models.DateTimeField()
-    parent_folder = models.ForeignKey('self', on_delete=models.CASCADE)
+    parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, null=True, default=None)
 
 
 class File(Resource):
-    path = models.CharField(max_length=256)
-    update_date = models.DateTimeField()
-    parent_folder = models.ForeignKey(Folder, on_delete=models.CASCADE)
+    path = models.FileField(default='')
+    upload_date = models.DateTimeField()
+    parent_folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, default=None)
