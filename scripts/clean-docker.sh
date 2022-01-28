@@ -9,8 +9,8 @@ fi
 
 echop 'Cleaning docker from Stowdo containers and images...'
 
-# deleting picdo containers
-for name in stowdo_stowdo_1 stowdo_db_1 stowdo_db_2
+# deleting stowdo containers
+for name in stowdo_stowdo_1 stowdo_db_1 stowdo_db_2 stowdo_minio_1 stowdo_minio_2
 do
     running_container=$(docker ps -f "name=$name" | tail -n +2)
     if [ ! -z "$running_container" ]
@@ -25,7 +25,7 @@ do
     fi
 done
 
-# deleting picdo images
+# deleting stowdo images
 image=$(docker images -f "reference=redbeandock/stowdo:*" -q)
 if [ ! -z "$image" ]
 then

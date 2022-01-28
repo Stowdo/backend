@@ -136,3 +136,11 @@ REST_FRAMEWORK = {
 SITE_ID = 1
 
 MEDIA_ROOT = BASE_DIR / 'media'
+
+MINIO_CONFIG = {
+    'host': os.environ.get('MINIO_HOST', 'localhost:9000'),
+    'access_key': os.environ.get('MINIO_ACCESS_KEY', ''),
+    'secret_key': os.environ.get('MINIO_SECRET_KEY', ''),
+    'default_bucket': 'default'
+}
+DEFAULT_FILE_STORAGE = 'storage.minio_storage.MinioStorage'

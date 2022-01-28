@@ -15,6 +15,15 @@ services:
     restart: always
     volumes:
       - ./scripts/docker:/docker-entrypoint-initdb.d
+  minio:
+    environment:
+      - MINIO_ACCESS_KEY
+      - MINIO_SECRET_KEY
+    hostname: "${MINIO_HOST}"
+    image: minio:lastest
+    restart: always
+    volumes:
+      - ./data:/data
   stowdo:
     build: '.'
     command: >

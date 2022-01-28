@@ -12,6 +12,28 @@ set -a
 set +a
 
 export STOWDO_DB_HOST='localhost'
+export MINIO_HOST='localhost:9000'
+
+if [ ! "$(docker ps -a | grep stowdo_minio_2)" ]; then
+    echop 'Creating minio container...'
+    
+    docker run \
+    -d \
+    -h "$MINIO_HOST" \
+    --name stowdo_minio_2 \
+    -e MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY" \
+    -e MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
+    -p "9000:9000" \
+    -p "9001:9001" \
+    -v "${PWD}/data:/data" \
+    bitnami/minio:latest
+    
+    echop 'Done'
+elif [ ! "$(docker ps | grep stowdo_minio_2)" ]; then
+    echop 'Starting minio...'
+    docker start stowdo_minio_2
+    echop 'Done'
+fi
 
 if [ ! "$(docker ps -a | grep stowdo_db_2)" ]; then
     echop 'Creating postgresql container...'
