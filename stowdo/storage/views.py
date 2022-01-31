@@ -6,7 +6,7 @@ from storage import models, serializers
 
 
 def check_parent_folder(request):
-    if request.data.get('parent_folder', None):
+    if request.data.get('parent_folder', '').isdigit():
         folder_id = request.data['parent_folder']
         folder_query = models.Folder.objects.filter(pk=folder_id, user=request.user)
 

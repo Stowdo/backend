@@ -64,4 +64,12 @@ echop 'Done'
 
 echop 'Running Picdo...'
 python3 stowdo/manage.py runserver 0.0.0.0:8000
-echop 'Stopped'
+echop 'API stopped'
+
+echop 'Stopping Minio...'
+docker stop stowdo_minio_2
+echop 'Done'
+
+echop 'Stopping database...'
+docker stop stowdo_db_2
+echop 'Done'
