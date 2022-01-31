@@ -13,13 +13,25 @@ class GetFolderSerializer(serializers.ModelSerializer):
 class CreateFolderSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Folder
-        fields = ('name', 'parent_folder')
+        fields = ['name', 'parent_folder']
+    
+    def save(self, **kwargs):
+        self.Meta.fields = ['pk', 'name', 'size', 'deleted', 'creation_date', 'user', 'parent_folder']
+        return super().save(**kwargs)
 
 
 class UpdateFolderSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Folder
-        fields = ('name', 'deleted', 'parent_folder')
+        fields = ['name', 'deleted', 'parent_folder']
+
+    def save(self, **kwargs):
+        self.Meta.fields = ['pk', 'name', 'size', 'deleted', 'creation_date', 'user', 'parent_folder']
+        return super().save(**kwargs)
+
+
+class DownloadFoldersSerializer(serializers.Serializer):
+    folders = serializers.PrimaryKeyRelatedField(many=True, queryset=models.Folder.objects.all())
 
 
 # File serializers
@@ -39,3 +51,7 @@ class UpdateFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.File
         fields = ('name', 'deleted', 'parent_folder')
+
+
+class DownloadFilesSerializer(serializers.Serializer):
+    files = serializers.PrimaryKeyRelatedField(many=True, queryset=models.File.objects.all())
