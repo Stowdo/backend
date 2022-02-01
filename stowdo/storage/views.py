@@ -29,7 +29,6 @@ class ResourceViewSet(ModelViewSet):
 class FolderViewSet(ModelViewSet):
     queryset = Folder.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
-    filterset_fields = ('user', 'parent_folder', 'deleted')
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve', 'download'):
@@ -41,7 +40,16 @@ class FolderViewSet(ModelViewSet):
         return UpdateFolderSerializer
 
     def get_queryset(self):
-        return Folder.objects.filter(user=self.request.user)
+        if hasattr(self.request, 'query_params'):
+            parent_folder = getattr(self.request, 'query_params').get('parent_folder', None)
+        else:
+            parent_folder = None
+
+        if parent_folder == None:
+            return Folder.objects.filter(user=self.request.user)
+        elif parent_folder == '':
+            return Folder.objects.filter(user=self.request.user, parent_folder__isnull=True)
+        return Folder.objects.filter(user=self.request.user, parent_folder=parent_folder)
 
     # creation
     def create(self, request):
@@ -85,7 +93,6 @@ class FolderViewSet(ModelViewSet):
 class FileViewSet(ModelViewSet):
     queryset = File.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
-    filterset_fields = ('user', 'parent_folder', 'deleted')
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve', 'download'):
@@ -97,7 +104,16 @@ class FileViewSet(ModelViewSet):
         return UpdateFileSerializer
 
     def get_queryset(self):
-        return File.objects.filter(user=self.request.user)
+        if hasattr(self.request, 'query_params'):
+            parent_folder = getattr(self.request, 'query_params').get('parent_folder', None)
+        else:
+            parent_folder = None
+
+        if parent_folder == None:
+            return File.objects.filter(user=self.request.user)
+        elif parent_folder == '':
+            return File.objects.filter(user=self.request.user, parent_folder__isnull=True)
+        return File.objects.filter(user=self.request.user, parent_folder=parent_folder)
 
     # create
     def create(self, request):

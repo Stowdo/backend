@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'allauth.account',
     'dj_rest_auth',
     'dj_rest_auth.registration',
-    'django_filters',
     'storage',
 ]
 LANGUAGE_CODE = 'fr-fr'
@@ -73,9 +72,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend'   
-    ]
 }
 ROOT_URLCONF = 'stowdo.urls'
 SECRET_KEY = os.environ.get('STOWDO_SECRET_KEY')
