@@ -1,22 +1,86 @@
 from datetime import datetime
+from django.contrib.auth.models import User
+from django.core.files import File as DjangoFile
 from django.http import HttpResponseBadRequest
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, decorators
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.viewsets import ModelViewSet
 
 from storage.models import Folder, File, Resource
-from storage.serializers import CreateFolderSerializer, DownloadFilesSerializer, DownloadFoldersSerializer, GetFolderSerializer, UpdateFolderSerializer, \
-    CreateFileSerializer, GetFileSerializer, UpdateFileSerializer
+from storage.serializers import \
+    UserSerializer, SimplifiedUserSerializer, \
+    FolderSerializer, CreateFolderSerializer, UpdateFolderSerializer, DownloadFoldersSerializer, \
+    FileSerializer, CreateFileSerializer, UpdateFileSerializer, DownloadFilesSerializer, \
+    ResourceSerializer, DownloadResourcesSerializer, EmptySerializer
 from storage.utils import create_file_response, create_zip_response, check_parent_folder
 
 
-class ResourceViewSet(ModelViewSet):
-    http_method_names = ['post', 'head', 'options', 'trace']
-    queryset = Resource.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+class UserViewSet(ModelViewSet):
+    def get_permissions(self):
+        if self.action in ('update', 'partial_update', 'retrieve', 'destroy'):
+            return permissions.IsAuthenticated
+        return permissions.IsAdminUser
+    
+    def get_serializer_class(self):
+        if getattr(self.request.user, 'is_staff', False):
+            return UserSerializer
+        if self.action in ('create', 'update', 'partial_update'):
+            return SimplifiedUserSerializer
+        return UserSerializer
 
-    @decorators.action(detail=False, methods=['post'])
-    def download(self, request):
+    def get_queryset(self):
+        if getattr(self.request.user, 'is_staff', False):
+            return User.objects.all()
+        return User.objects.get(pk=self.request.user.pk)
+
+    def retrieve(self, request, pk):
+        if request.user.pk == pk or request.user.is_staff:
+            return super().retrieve(request, pk)
+        raise PermissionDenied()
+
+    def update(self, request, pk):
+        if request.user.pk == pk or request.user.is_staff:
+            return super().update(request, pk)
+        raise PermissionDenied()
+
+    def partial_update(self, request, pk):
+        if request.user.pk == pk or request.user.is_staff:
+            return super().partial_update(request, pk)
+        raise PermissionDenied()
+
+    def destroy(self, request, pk):
+        if request.user.pk == pk or request.user.is_staff:
+            return super().destroy(request, pk)
+        raise PermissionDenied()
+
+
+class ResourceViewSet(ModelViewSet):
+    def get_permissions(self):
+        if self.action == 'download_multiple':
+            return permissions.IsAuthenticated
+        return permissions.IsAdminUser
+
+    def get_serializer_class(self):
+        if self.action == 'download_multiple':
+            return DownloadResourcesSerializer
+        if self.action in ('create', 'update', 'partial_update'):
+            return EmptySerializer
+        return ResourceSerializer
+
+    def get_queryset(self):
+        if getattr(self.request.user, 'is_staff', False):
+            return Resource.objects.all()
+        return Resource.objects.filter(user=self.request.user)
+
+    def create(self, _):
+        return PermissionDenied()
+
+    def update(self, _):
+        return PermissionDenied()
+
+    @decorators.action(detail=False, methods=['post'], url_name='download')
+    def download_multiple(self, request):
         user = request.user
         folders_pk = request.data.get('folders', [])
         files_pk = request.data.get('files', [])
@@ -27,56 +91,68 @@ class ResourceViewSet(ModelViewSet):
 
 
 class FolderViewSet(ModelViewSet):
-    queryset = Folder.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get_serializer_class(self):
-        if self.action in ('list', 'retrieve', 'download'):
-            return GetFolderSerializer
-        elif self.action == 'create':
-            return CreateFolderSerializer
-        elif self.action == 'download_multiple':
-            return DownloadFoldersSerializer
-        return UpdateFolderSerializer
-
     def get_queryset(self):
-        if hasattr(self.request, 'query_params'):
-            parent_folder = getattr(self.request, 'query_params').get('parent_folder', None)
-        else:
-            parent_folder = None
+        filters = {}
+        query_params = getattr(self.request, 'query_params', {})
+        parent_folder = query_params.get('parent_folder', None)
 
-        if parent_folder == None:
-            return Folder.objects.filter(user=self.request.user)
-        elif parent_folder == '':
-            return Folder.objects.filter(user=self.request.user, parent_folder__isnull=True)
-        return Folder.objects.filter(user=self.request.user, parent_folder=parent_folder)
+        if parent_folder == '':
+            filters['parent_folder'] = None
+        elif parent_folder != None:
+            filters['parent_folder'] = parent_folder
+        if not getattr(self.request.user, 'is_staff', False):
+            filters['user'] = self.request.user
 
-    # creation
+        return Folder.objects.filter(**filters)
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CreateFolderSerializer
+        if self.action == 'download_multiple':
+            return DownloadFoldersSerializer
+        if getattr(self.request.user, 'is_staff', False) \
+            and self.action in ('update', 'partial_update'):
+            return UpdateFolderSerializer
+        return FolderSerializer
+
     def create(self, request):
-        check_parent_folder(request)
+        if not request.user.is_staff:
+            check_parent_folder(request)
         return super().create(request)
 
     def perform_create(self, serializer):
         serializer.save(size=0, deleted=False, user=self.request.user, creation_date=datetime.now())
-    
-    # read
-    def retrieve(self, request, pk):
-        if Folder.objects.filter(pk=pk, user=request.user).exists():
-            return super().retrieve(request, pk)
-        raise PermissionDenied()
 
-    # update
+    def retrieve(self, request, pk):
+        if request.user.is_staff:
+            folder = get_object_or_404(Folder, pk=pk)
+
+            if folder.user != request.user:
+                raise PermissionDenied('You do not have the permission to retrieve this folder')
+
+        return super().retrieve(request, pk)
+
     def update(self, request, pk):
-        check_parent_folder(request)
+        if request.user.is_staff:
+            folder = get_object_or_404(Folder, pk=pk)
+            check_parent_folder(request)
+
+            if folder.user != request.user:
+                raise PermissionDenied('You do not have the permission to update this folder')
+
         return super().update(request, pk)
     
-    # delete
-    def destroy(self, request, pk=None):
-        if Folder.objects.filter(pk=pk, user=request.user).exists():
-            return super().destroy(request, pk)
-        raise PermissionDenied()
+    def destroy(self, request, pk):
+        if request.user.is_staff:
+            folder = get_object_or_404(Folder, pk=pk)
 
-    # special actions
+            if folder.user != request.user:
+                raise PermissionDenied('You do not have the permission to destroy this folder')
+
+        return super().destroy(request, pk)
+
     @decorators.action(detail=True)
     def download(self, request, pk):
         return create_zip_response(request.user, [pk], [])
@@ -91,39 +167,47 @@ class FolderViewSet(ModelViewSet):
 
 
 class FileViewSet(ModelViewSet):
-    queryset = File.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get_serializer_class(self):
-        if self.action in ('list', 'retrieve', 'download'):
-            return GetFileSerializer
-        elif self.action == 'create':
-            return CreateFileSerializer
-        elif self.action == 'download_multiple':
-            return DownloadFilesSerializer
-        return UpdateFileSerializer
-
     def get_queryset(self):
-        if hasattr(self.request, 'query_params'):
-            parent_folder = getattr(self.request, 'query_params').get('parent_folder', None)
-        else:
-            parent_folder = None
+        filters = {}
+        query_params = getattr(self.request, 'query_params', {})
+        parent_folder = query_params.get('parent_folder', None)
 
-        if parent_folder == None:
-            return File.objects.filter(user=self.request.user)
-        elif parent_folder == '':
-            return File.objects.filter(user=self.request.user, parent_folder__isnull=True)
-        return File.objects.filter(user=self.request.user, parent_folder=parent_folder)
+        if parent_folder == '':
+            filters['parent_folder'] = None
+        elif parent_folder != None:
+            filters['parent_folder'] = parent_folder
+        if not getattr(self.request.user, 'is_staff', False):
+            filters['user'] = self.request.user
+            
+        return File.objects.filter(**filters)
 
-    # create
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CreateFileSerializer
+        if self.action == 'download_multiple':
+            return DownloadFilesSerializer
+        if getattr(self.request.user, 'is_staff', False) \
+            and self.action in ('update', 'partial_update'):
+            return UpdateFileSerializer
+        return FileSerializer
+
     def create(self, request):
-        check_parent_folder(request)
-        response = super().create(request)
+        if not request.user.is_staff:
+            check_parent_folder(request)
+        
+        parent_folder_id = request.data.get('parent_folder', None)
+        if isinstance(parent_folder_id, int):
+            parent_folder = get_object_or_404(Folder, pk=parent_folder_id)
+            file_size = request.data.get('path', DjangoFile).size
 
-        if request.data.get('parent_folder', None):
-            folder = Folder.objects.get(pk=request.data['parent_folder'])
-            folder.size += request.data['path'].size
-        return response
+            while parent_folder:
+                parent_folder.size += file_size
+                parent_folder.save()
+                parent_folder = parent_folder.parent_folder
+        
+        return super().create(request)
 
     def perform_create(self, serializer):
         if hasattr(self.request, 'data'):
@@ -137,33 +221,40 @@ class FileViewSet(ModelViewSet):
             deleted=False,
             user=self.request.user,
             path=file,
-            upload_date=datetime.now())
-    
-    # read
+            upload_date=datetime.now()
+        )
+
     def retrieve(self, request, pk):
-        if File.objects.filter(pk=pk, user=request.user).exists():
-            return super().retrieve(request, pk)
-        raise PermissionDenied()
+        if request.user.is_staff:
+            file = get_object_or_404(File, pk=pk)
 
-    # update
+            if file.user != request.user:
+                raise PermissionDenied('You do not have the permission to retrieve this file')
+
+        return super().retrieve(request, pk)
+
     def update(self, request, pk):
-        check_parent_folder(request)
-        return super().update(request, pk)
+        if request.user.is_staff:
+            file = get_object_or_404(File, pk=pk)
+            check_parent_folder(request)
 
-    def partial_update(self, request, pk):
-        check_parent_folder(request)
-        return super().partial_update(request, pk)
+            if file.user != request.user:
+                raise PermissionDenied('You do not have the permission to update this file')
+
+        return super().update(request, pk)
 
     def perform_update(self, serializer):
         serializer.save(upload_date=datetime.now())
 
-    # delete
     def destroy(self, request, pk=None):
-        if File.objects.filter(pk=pk, user=request.user).exists():
-            return super().destroy(request, pk)
-        raise PermissionDenied()
+        if request.user.is_staff:
+            file = get_object_or_404(File, pk=pk)
 
-    # special actions
+            if file.user != request.user:
+                raise PermissionDenied('You do not have the permission to destroy this file')
+
+        return super().destroy(request, pk)
+
     @decorators.action(detail=True)
     def download(self, request, pk):
         return create_file_response(request.user, pk)

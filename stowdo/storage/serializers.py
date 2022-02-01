@@ -1,56 +1,77 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from storage import models
+from storage.models import File, Folder, Resource
+
+class EmptySerializer(serializers.Serializer):
+    pass
+
+
+# User serializers
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
+class SimplifiedUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email')
+
+
+# Resource serializers
+class ResourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Resource
+
+
+class DownloadResourcesSerializer(serializers.Serializer):
+    folders = serializers.PrimaryKeyRelatedField(many=True, queryset=Folder.objects.all())
+    files = serializers.PrimaryKeyRelatedField(many=True, queryset=File.objects.all())
+
 
 # Folder serializers
-class GetFolderSerializer(serializers.ModelSerializer):
+class FolderSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Folder
-        fields = ('pk', 'name', 'size', 'deleted', 'creation_date', 'user', 'parent_folder')
+        model = Folder
+        fields = '__all__'
 
 
 class CreateFolderSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Folder
-        fields = ['name', 'parent_folder']
-    
-    def save(self, **kwargs):
-        self.Meta.fields = ['pk', 'name', 'size', 'deleted', 'creation_date', 'user', 'parent_folder']
-        return super().save(**kwargs)
+        model = Folder
+        fields = ('name', 'parent_folder')
 
 
 class UpdateFolderSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Folder
-        fields = ['name', 'deleted', 'parent_folder']
-
-    def save(self, **kwargs):
-        self.Meta.fields = ['pk', 'name', 'size', 'deleted', 'creation_date', 'user', 'parent_folder']
-        return super().save(**kwargs)
+        model = Folder
+        fields = ('name', 'deleted', 'parent_folder')
 
 
 class DownloadFoldersSerializer(serializers.Serializer):
-    folders = serializers.PrimaryKeyRelatedField(many=True, queryset=models.Folder.objects.all())
+    folders = serializers.PrimaryKeyRelatedField(many=True, queryset=Folder.objects.all())
 
 
 # File serializers
-class GetFileSerializer(serializers.ModelSerializer):
+class FileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.File
-        fields = ('pk', 'name', 'size', 'deleted', 'upload_date', 'user', 'parent_folder')
+        model = File
+        fields = '__all__'
 
 
 class CreateFileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.File
+        model = File
         fields = ('path', 'parent_folder')
 
 
 class UpdateFileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.File
+        model = File
         fields = ('name', 'deleted', 'parent_folder')
 
 
 class DownloadFilesSerializer(serializers.Serializer):
-    files = serializers.PrimaryKeyRelatedField(many=True, queryset=models.File.objects.all())
+    files = serializers.PrimaryKeyRelatedField(many=True, queryset=File.objects.all())

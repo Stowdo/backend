@@ -8,14 +8,13 @@ from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 from storage.models import File, Folder
 
 
-
 def check_parent_folder(request):
     folder_id = request.data.get('parent_folder', None)
     if isinstance(folder_id, int):
-        folder_query = Folder.objects.filter(pk=folder_id, user=request.user)
+        folder = get_object_or_404(Folder, pk=folder_id)
 
-        if not folder_query.exists():
-            raise PermissionDenied()
+        if folder.user != request.user:
+            raise PermissionDenied('Access to this parent folder is forbidden')
 
 
 def create_zip_response(user, folders_pk, files_pk):

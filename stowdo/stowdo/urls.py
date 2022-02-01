@@ -2,12 +2,13 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 
-from storage.urls import router as storage_router
+from storage.urls import router as storage_router, user_router
 
 router = routers.DefaultRouter()
 router.registry.extend(storage_router.registry)
 
 urlpatterns = [
+    path('', include(user_router.urls)),
     path('admin/', admin.site.urls),
     path('storage/', include(router.urls)),
     path('auth/', include('dj_rest_auth.urls')),
