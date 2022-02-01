@@ -1,6 +1,10 @@
 import os
 from pathlib import Path
 
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS=False
+ACCOUNT_AUTHENTICATION_METHOD='username'
+ACCOUNT_EMAIL_REQUIRED=False
+ACCOUNT_EMAIL_VERIFICATION='none'
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -47,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'storage',
