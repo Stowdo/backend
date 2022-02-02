@@ -8,6 +8,21 @@ from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 from storage.models import File, Folder
 
 
+def add_file_to_folder(parent_folder, file_size):
+    while parent_folder:
+        parent_folder.size += file_size
+        parent_folder.save()
+        parent_folder = parent_folder.parent_folder
+
+
+def remove_file_from_folder(file):
+    parent_folder = file.parent_folder
+    while parent_folder:
+        parent_folder.size -= file.size
+        parent_folder.save()
+        parent_folder = parent_folder.parent_folder
+
+
 def check_parent_folder(request):
     folder_id = request.data.get('parent_folder', None)
     if isinstance(folder_id, int):

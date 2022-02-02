@@ -1,3 +1,5 @@
 from django.contrib import admin
+from storage.models import File, Folder
 
-# Register your models here.
+admin.register(Folder)
+admin.register(File)

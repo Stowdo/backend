@@ -13,7 +13,7 @@ from storage.serializers import \
     FolderSerializer, CreateFolderSerializer, UpdateFolderSerializer, DownloadFoldersSerializer, \
     FileSerializer, CreateFileSerializer, UpdateFileSerializer, DownloadFilesSerializer, \
     ResourceSerializer, DownloadResourcesSerializer, EmptySerializer
-from storage.utils import create_file_response, create_zip_response, check_parent_folder
+from storage.utils import add_file_to_folder, create_file_response, create_zip_response, check_parent_folder, remove_file_from_folder
 
 
 class UserViewSet(ModelViewSet):
@@ -45,10 +45,10 @@ class UserViewSet(ModelViewSet):
                 return super().retrieve(request, pk)
         raise PermissionDenied()
 
-    def update(self, request, pk):
+    def update(self, request, pk, partial=None):
         if str(pk).isdigit():
             if request.user.pk == int(pk) or request.user.is_staff:
-                return super().update(request, pk)
+                return super().update(request, pk, partial=partial)
         raise PermissionDenied()
 
     def destroy(self, request, pk):
@@ -86,7 +86,7 @@ class ResourceViewSet(ModelViewSet):
             raise PermissionDenied()
         return super().retrieve(request, pk)
 
-    def update(self, _):
+    def update(self, request, pk, partial=None):
         return PermissionDenied()
 
     @decorators.action(detail=False, methods=['post'], url_name='download')
@@ -143,7 +143,7 @@ class FolderViewSet(ModelViewSet):
 
         return super().retrieve(request, pk)
 
-    def update(self, request, pk):
+    def update(self, request, pk, partial=None):
         folder = get_object_or_404(Folder, pk=pk)
         if request.user.is_staff:
             check_parent_folder(request)
@@ -151,7 +151,9 @@ class FolderViewSet(ModelViewSet):
             if folder.user != request.user:
                 raise PermissionDenied('You do not have the permission to update this folder')
 
-        return super().update(request, pk)
+        response = super().update(request, pk, partial=partial)
+        add_file_to_folder(folder.parent_folder, folder.size)
+        return response
     
     def destroy(self, request, pk):
         folder = get_object_or_404(Folder, pk=pk)
@@ -159,6 +161,7 @@ class FolderViewSet(ModelViewSet):
             if folder.user != request.user:
                 raise PermissionDenied('You do not have the permission to destroy this folder')
 
+        remove_file_from_folder(folder)
         return super().destroy(request, pk)
 
     @decorators.action(detail=True)
@@ -210,10 +213,7 @@ class FileViewSet(ModelViewSet):
             parent_folder = get_object_or_404(Folder, pk=int(parent_folder_id))
             file_size = request.data.get('path', DjangoFile).size
 
-            while parent_folder:
-                parent_folder.size += file_size
-                parent_folder.save()
-                parent_folder = parent_folder.parent_folder
+            add_file_to_folder(parent_folder, file_size)
         
         return super().create(request)
 
@@ -240,7 +240,7 @@ class FileViewSet(ModelViewSet):
 
         return super().retrieve(request, pk)
 
-    def update(self, request, pk):
+    def update(self, request, pk, partial=None):
         file = get_object_or_404(File, pk=pk)
         if request.user.is_staff:
             check_parent_folder(request)
@@ -248,7 +248,13 @@ class FileViewSet(ModelViewSet):
             if file.user != request.user:
                 raise PermissionDenied('You do not have the permission to update this file')
 
-        return super().update(request, pk)
+        parent_folder_id = request.data.get('parent_folder', None)
+
+        if str(parent_folder_id).isdigit():
+            parent_folder = get_object_or_404(Folder, pk=int(parent_folder_id))
+            add_file_to_folder(parent_folder, file.size)
+        response = super().update(request, pk, partial=partial)
+        return response
 
     def perform_update(self, serializer):
         serializer.save(upload_date=datetime.now())
@@ -259,12 +265,7 @@ class FileViewSet(ModelViewSet):
             if file.user != request.user:
                 raise PermissionDenied('You do not have the permission to destroy this file')
         
-        parent_folder = file.parent_folder
-        while parent_folder:
-            parent_folder.size -= file.size
-            parent_folder.save()
-            parent_folder = parent_folder.parent_folder
-
+        remove_file_from_folder(file)
         return super().destroy(request, pk)
 
     @decorators.action(detail=True)
