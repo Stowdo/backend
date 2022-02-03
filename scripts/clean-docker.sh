@@ -10,7 +10,7 @@ fi
 echop 'Cleaning docker from Stowdo containers and images...'
 
 # deleting stowdo containers
-for name in stowdo_stowdo_1 stowdo_db_1 stowdo_db_2 stowdo_minio_1 stowdo_minio_2
+for name in stowdo_stowdo_1 stowdo_db_1 stowdo_db_2 stowdo_minio_1 stowdo_minio_2 stowdo_proxy_1
 do
     running_container=$(docker ps -f "name=$name" | tail -n +2)
     if [ ! -z "$running_container" ]

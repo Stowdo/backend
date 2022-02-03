@@ -20,11 +20,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 BASE_DIR = Path(__file__).resolve().parent.parent
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_DOMAIN='.stowdo.tk'
 CSRF_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -80,6 +80,8 @@ REST_FRAMEWORK = {
 }
 ROOT_URLCONF = 'stowdo.urls'
 SECRET_KEY = os.environ.get('STOWDO_SECRET_KEY')
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
 SITE_ID = 1
 STATIC_URL = 'static/'
 TEMPLATES = [
@@ -104,26 +106,24 @@ WSGI_APPLICATION = 'stowdo.wsgi.application'
 
 # settings depending to DEBUG value
 if DEBUG:
-    CORS_ALLOWED_ORIGINS = [
-        'https://stowdo.tk',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-    ]
-    CSRF_TRUSTED_ORIGINS = [
-        'https://stowdo.tk',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-    ]
     ALLOWED_HOSTS = [
         '*',
     ]
-else:
-    CORS_ALLOWED_ORIGINS = [
-        'https://stowdo.tk',
-    ]
     CSRF_TRUSTED_ORIGINS = [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://stowdo.tk',
         'https://stowdo.tk',
     ]
+else:
     ALLOWED_HOSTS = [
         'api.stowdo.tk',
+        'admin.stowdo.tk',
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        'http://stowdo.tk',
+        'https://stowdo.tk',
+    ]
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
+        'rest_framework.renderers.JSONRenderer',
     ]

@@ -12,6 +12,7 @@ echop 'This script will let you define variables for your local environment.'
 echop 'The proposals in brackets are the default values. Leave blank to use them.'
 
 echo
+read -p 'Environment (DEVELOPMENT): ' environment
 read -p 'Database name (stowdo): ' db_name
 read -p 'Database host (db): ' db_host
 read -p 'Database port (5432): ' db_port
@@ -22,6 +23,11 @@ read -p 'Minio host (localhost:9000): ' minio_host
 read -p 'Minio access key (auto generated): ' minio_access_key
 read -sp 'Minio secret key (auto generated):' minio_secret_key && echo
 echo
+
+if [ -z "$environment" ]
+then
+    environment=DEVELOPMENT
+fi
 
 if [ -z "$db_name" ]
 then
@@ -70,16 +76,16 @@ fi
 
 version=$(cat VERSION)
 
-echo "STOWDO_VERSION='$version'" > .env
-echo "STOWDO_SECRET_KEY='$secret_key'" >> .env
-echo "STOWDO_ENVIRONMENT='DEVELOPMENT'" >> .env
-echo "STOWDO_DB_NAME='$db_name'" >> .env
-echo "STOWDO_DB_HOST='$db_host'" >> .env
-echo "STOWDO_DB_PORT='$db_port'" >> .env
-echo "STOWDO_DB_USER='$db_user'" >> .env
-echo "STOWDO_DB_PASSWORD='$db_password'" >> .env
-echo "MINIO_HOST='$minio_host'" >> .env
-echo "MINIO_ACCESS_KEY='$minio_access_key'" >> .env
-echo "MINIO_SECRET_KEY='$minio_secret_key'" >> .env
+echo "STOWDO_VERSION=$version" > .env
+echo "STOWDO_SECRET_KEY=$secret_key" >> .env
+echo "STOWDO_ENVIRONMENT=$environment" >> .env
+echo "STOWDO_DB_NAME=$db_name" >> .env
+echo "STOWDO_DB_HOST=$db_host" >> .env
+echo "STOWDO_DB_PORT=$db_port" >> .env
+echo "STOWDO_DB_USER=$db_user" >> .env
+echo "STOWDO_DB_PASSWORD=$db_password" >> .env
+echo "MINIO_HOST=$minio_host" >> .env
+echo "MINIO_ACCESS_KEY=$minio_access_key" >> .env
+echo "MINIO_SECRET_KEY=$minio_secret_key" >> .env
 
 echop 'Environment variables have been defined!'
