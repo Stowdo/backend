@@ -1,5 +1,8 @@
 import os
 from pathlib import Path
+import mimetypes
+
+mimetypes.add_type("text/css", ".css", True)
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS=False
 ACCOUNT_AUTHENTICATION_METHOD='username'
