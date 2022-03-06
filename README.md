@@ -53,7 +53,7 @@ Scripts call Python with the `python3` command. Unfortunately on Windows the cor
 
 One way to solve this problem is to make a copy of `python.exe` named `python3.exe` in the same folder.
 
-The default installation folder for Python 3.8 is `C:\Users\<youUsername>\AppData\Local\Programs\Python\Python39\`.
+The default installation folder for Python 3.9 is `C:\Users\<youUsername>\AppData\Local\Programs\Python\Python39\`.
 
 ## Run Locally
 
