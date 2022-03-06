@@ -85,7 +85,7 @@ $ ./scripts/clean-docker.sh
 
 ## Tech Stack
 
-**Front-end:** HTML5, SASS, pure JS
+**Front-end:** React, SASS
 
 **Back-end:** Django, Python3, Postgresql, Minio
 ## Environment Variables
