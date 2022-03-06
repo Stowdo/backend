@@ -85,9 +85,10 @@ $ ./scripts/clean-docker.sh
 
 ## Tech Stack
 
-**Front-end:** React, SASS
+**API:** Python 3, Django, Django-rest-framework
 
-**Back-end:** Django, Python3, Postgresql, Minio
+**Databases:** Minio, Postgresql
+
 ## Environment Variables
 
 Local environment variables are stored in `.env` file.
