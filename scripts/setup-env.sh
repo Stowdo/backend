@@ -14,9 +14,9 @@ echop 'The proposals in brackets are the default values. Leave blank to use them
 echo
 read -p 'Environment (DEVELOPMENT): ' environment
 read -p 'Database name (stowdo): ' db_name
-read -p 'Database host (db): ' db_host
+read -p 'Database host (localhost): ' db_host
 read -p 'Database port (5432): ' db_port
-read -p 'Database user (postgres): ' db_user
+read -p 'Database user (stowdo_api): ' db_user
 read -sp 'Database password (auto generated): ' db_password && echo
 read -sp 'Django secret key (auto generated):' secret_key && echo
 read -p 'Minio host (localhost:9000): ' minio_host
@@ -31,12 +31,12 @@ fi
 
 if [ -z "$db_name" ]
 then
-    db_name=stowdo
+    db_name=stowdo_api
 fi
 
 if [ -z "$db_host" ]
 then
-    db_host=db
+    db_host=localhost
 fi
 
 if [ -z "$db_port" ]
@@ -46,7 +46,7 @@ fi
 
 if [ -z "$db_user" ]
 then
-    db_user=postgres
+    db_user=stowdo_api
 fi
 
 if [ -z "$db_password" ]
