@@ -37,7 +37,8 @@ def create_zip_response(user, folders_pk, files_pk):
         return '/'.join(folder.name for folder in folders)
 
     buffer = BytesIO()
-    todo = [[get_object_or_404(Folder, pk=folder_pk, user=user),] for folder_pk in folders_pk]
+    todo = [[get_object_or_404(Folder, pk=folder_pk, user=user), ]
+            for folder_pk in folders_pk]
 
     with ZipFile(buffer, 'w', compression=ZIP_DEFLATED) as zfile:
         for file_pk in files_pk:
@@ -48,13 +49,16 @@ def create_zip_response(user, folders_pk, files_pk):
         while todo:
             folders = todo.pop()
             folder_path = create_path(folders)
-            subfiles = File.objects.filter(user=user, parent_folder=folders[-1])
-            subfolders = Folder.objects.filter(user=user, parent_folder=folders[-1])
+            subfiles = File.objects.filter(
+                user=user, parent_folder=folders[-1])
+            subfolders = Folder.objects.filter(
+                user=user, parent_folder=folders[-1])
 
             if subfiles.exists():
                 for subfile in subfiles:
                     with subfile.path.open() as f:
-                        zfile.writestr(op.join(folder_path, subfile.name), f.read())
+                        zfile.writestr(
+                            op.join(folder_path, subfile.name), f.read())
             else:
                 zif = ZipInfo(folder_path + '/')
                 zfile.writestr(zif, '')
@@ -67,7 +71,7 @@ def create_zip_response(user, folders_pk, files_pk):
     response['Content-Length'] = filesize
     response['Content-Disposition'] = 'attachment; filename="Files.zip"'
     response['Access-Control-Expose-Headers'] = 'Content-Disposition'
-    
+
     return response
 
 
