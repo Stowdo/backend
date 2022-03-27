@@ -13,6 +13,8 @@ psycopg2-binary = "~=2.9"
 six = "~=1.16"
 tzdata = "~=2021.5"
 "ufile.io" = "~=1.0"
+django-health-check = "*"
+psutil = "*"
 
 [dev-packages]
 
