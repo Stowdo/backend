@@ -19,3 +19,7 @@ COLOR_NULL='\033[0m'
 echop () {
     echo -e "${COLOR_BLUE}[STOWDO]${COLOR_NULL}" $@
 }
+
+errorp () {
+    echo -e "${COLOR_RED}[STOWDO ERROR]${COLOR_NULL}" $@
+}

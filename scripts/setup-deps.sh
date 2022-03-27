@@ -7,7 +7,14 @@ fi
 
 . scripts/utils.sh
 
-echop 'Installing python packages...'
-python3 -m pip install -r requirements.txt
-echop 'Python packages have been installed!'
+echop 'Setup temporary virtual environment with its dependencies...'
+pipenv install
+
+if [ $? -eq 0 ]
+then
+    echop 'Python packages have been installed!'
+else
+    errorp 'Unable to setup virtual environment. Do you have pipenv installed?'
+fi
+
 echo
