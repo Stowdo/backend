@@ -11,4 +11,4 @@ set +a
 
 export STOWDO_DB_HOST='localhost'
 
-python3 stowdo/manage.py makemigrations
+pipenv run python3 stowdo/manage.py makemigrations
