@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from storage.models import File, Folder, Resource
 
+
 class EmptySerializer(serializers.Serializer):
     pass
 
@@ -27,8 +28,10 @@ class ResourceSerializer(serializers.ModelSerializer):
 
 
 class DownloadResourcesSerializer(serializers.Serializer):
-    folders = serializers.PrimaryKeyRelatedField(many=True, queryset=Folder.objects.all())
-    files = serializers.PrimaryKeyRelatedField(many=True, queryset=File.objects.all())
+    folders = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Folder.objects.all())
+    files = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=File.objects.all())
 
 
 # Folder serializers
@@ -51,7 +54,8 @@ class UpdateFolderSerializer(serializers.ModelSerializer):
 
 
 class DownloadFoldersSerializer(serializers.Serializer):
-    folders = serializers.PrimaryKeyRelatedField(many=True, queryset=Folder.objects.all())
+    folders = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Folder.objects.all())
 
 
 # File serializers
@@ -74,4 +78,5 @@ class UpdateFileSerializer(serializers.ModelSerializer):
 
 
 class DownloadFilesSerializer(serializers.Serializer):
-    files = serializers.PrimaryKeyRelatedField(many=True, queryset=File.objects.all())
+    files = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=File.objects.all())

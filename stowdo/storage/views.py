@@ -18,7 +18,7 @@ from storage.utils import add_file_to_folder, create_file_response, create_zip_r
 
 class UserViewSet(ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
-    
+
     def get_serializer_class(self):
         if getattr(self.request.user, 'is_staff', False):
             return UserSerializer
@@ -123,7 +123,7 @@ class FolderViewSet(ModelViewSet):
         if self.action == 'download_multiple':
             return DownloadFoldersSerializer
         if getattr(self.request.user, 'is_staff', False) \
-            and self.action in ('update', 'partial_update'):
+                and self.action in ('update', 'partial_update'):
             return UpdateFolderSerializer
         return FolderSerializer
 
@@ -133,13 +133,15 @@ class FolderViewSet(ModelViewSet):
         return super().create(request)
 
     def perform_create(self, serializer):
-        serializer.save(size=0, deleted=False, user=self.request.user, creation_date=datetime.now())
+        serializer.save(size=0, deleted=False,
+                        user=self.request.user, creation_date=datetime.now())
 
     def retrieve(self, request, pk):
         folder = get_object_or_404(Folder, pk=pk)
         if request.user.is_staff:
             if folder.user != request.user:
-                raise PermissionDenied('You do not have the permission to retrieve this folder')
+                raise PermissionDenied(
+                    'You do not have the permission to retrieve this folder')
 
         return super().retrieve(request, pk)
 
@@ -149,17 +151,19 @@ class FolderViewSet(ModelViewSet):
             check_parent_folder(request)
 
             if folder.user != request.user:
-                raise PermissionDenied('You do not have the permission to update this folder')
+                raise PermissionDenied(
+                    'You do not have the permission to update this folder')
 
         response = super().update(request, pk, partial=partial)
         add_file_to_folder(folder.parent_folder, folder.size)
         return response
-    
+
     def destroy(self, request, pk):
         folder = get_object_or_404(Folder, pk=pk)
         if request.user.is_staff:
             if folder.user != request.user:
-                raise PermissionDenied('You do not have the permission to destroy this folder')
+                raise PermissionDenied(
+                    'You do not have the permission to destroy this folder')
 
         remove_file_from_folder(folder)
         return super().destroy(request, pk)
@@ -191,7 +195,7 @@ class FileViewSet(ModelViewSet):
             filters['parent_folder'] = parent_folder
         if not getattr(self.request.user, 'is_staff', False):
             filters['user'] = self.request.user
-            
+
         return File.objects.filter(**filters)
 
     def get_serializer_class(self):
@@ -200,21 +204,21 @@ class FileViewSet(ModelViewSet):
         if self.action == 'download_multiple':
             return DownloadFilesSerializer
         if getattr(self.request.user, 'is_staff', False) \
-            and self.action in ('update', 'partial_update'):
+                and self.action in ('update', 'partial_update'):
             return UpdateFileSerializer
         return FileSerializer
 
     def create(self, request):
         if not request.user.is_staff:
             check_parent_folder(request)
-        
+
         parent_folder_id = request.data.get('parent_folder', None)
         if str(parent_folder_id).isdigit():
             parent_folder = get_object_or_404(Folder, pk=int(parent_folder_id))
             file_size = request.data.get('path', DjangoFile).size
 
             add_file_to_folder(parent_folder, file_size)
-        
+
         return super().create(request)
 
     def perform_create(self, serializer):
@@ -236,7 +240,8 @@ class FileViewSet(ModelViewSet):
         file = get_object_or_404(File, pk=pk)
         if request.user.is_staff:
             if file.user != request.user:
-                raise PermissionDenied('You do not have the permission to retrieve this file')
+                raise PermissionDenied(
+                    'You do not have the permission to retrieve this file')
 
         return super().retrieve(request, pk)
 
@@ -246,7 +251,8 @@ class FileViewSet(ModelViewSet):
             check_parent_folder(request)
 
             if file.user != request.user:
-                raise PermissionDenied('You do not have the permission to update this file')
+                raise PermissionDenied(
+                    'You do not have the permission to update this file')
 
         parent_folder_id = request.data.get('parent_folder', None)
 
@@ -263,8 +269,9 @@ class FileViewSet(ModelViewSet):
         file = get_object_or_404(File, pk=pk)
         if request.user.is_staff:
             if file.user != request.user:
-                raise PermissionDenied('You do not have the permission to destroy this file')
-        
+                raise PermissionDenied(
+                    'You do not have the permission to destroy this file')
+
         remove_file_from_folder(file)
         return super().destroy(request, pk)
 

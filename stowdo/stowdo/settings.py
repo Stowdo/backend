@@ -4,10 +4,10 @@ import mimetypes
 
 mimetypes.add_type("text/css", ".css", True)
 
-ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS=False
-ACCOUNT_AUTHENTICATION_METHOD='username'
-ACCOUNT_EMAIL_REQUIRED=False
-ACCOUNT_EMAIL_VERIFICATION='none'
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+ACCOUNT_AUTHENTICATION_METHOD = 'username'
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -25,7 +25,7 @@ AUTH_PASSWORD_VALIDATORS = [
 BASE_DIR = Path(__file__).resolve().parent.parent
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CSRF_COOKIE_DOMAIN='.stowdo.tk'
+CSRF_COOKIE_DOMAIN = '.stowdo.tk'
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SECURE = True
 DATABASES = {
