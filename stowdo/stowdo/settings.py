@@ -57,6 +57,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'dj_rest_auth',
     'dj_rest_auth.registration',
+    'health_check',
+    'health_check.db',
+    'health_check.storage',
+    'health_check.contrib.psutil',
     'storage',
 ]
 LANGUAGE_CODE = 'fr-fr'
