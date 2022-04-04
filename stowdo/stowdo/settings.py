@@ -81,6 +81,7 @@ MINIO_CONFIG = {
     'default_bucket': 'default'
 }
 REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'storage.pagination.StowdoPagination',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
